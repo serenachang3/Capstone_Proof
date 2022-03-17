@@ -32,7 +32,7 @@ export default function App() {
     return () => {
       init();
     };
-  }, []);
+  }, 10000);
 
   // useEffect(() => {
   //   async function getPoseInfoAndCriteria() {
@@ -62,22 +62,24 @@ export default function App() {
       webcamRef.current.video.width = videoWidth;
       webcamRef.current.video.height = videoHeight;
 
-	  console.log('detector', detector)
+	  // console.log('detector', detector)
       if (detector) {
         let poses = await detector.estimatePoses(video);
-		console.log('poses', poses)
-        requestAnimationFrame(async () => {
-          await getPoses();
-        });
+		// console.log('poses', poses)
+        // requestAnimationFrame(async () => {
+        //   await getPoses();
+        // });
+        // const ctx = canvasRef.current.getContext("2d");
+        
         drawCanvas(poses, videoWidth, videoHeight, canvasRef);
-        const ctx = canvasRef.current.getContext("2d");
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        
       }
     }
   }
 
   function drawKeypoint(keypoint) {
     const ctx = canvasRef.current.getContext("2d");
+   
     // If score is null, just show the keypoint.
     const confidence = keypoint.score != null ? keypoint.score : 1;
     const scoreThreshold = 0.3 || 0;
