@@ -32,20 +32,7 @@ export default function App() {
     return () => {
       init();
     };
-  }, 100);
-
-  // useEffect(() => {
-  //   async function getPoseInfoAndCriteria() {
-  //     await dispatch(getPose({poseName: exercise}));
-  //   }
-  //   getPoseInfoAndCriteria();
-  // }, [exercise]);
-
-  // useEffect(() => {
-  //   if (criteria) {
-  //     setOpenInstructions(true);
-  //   }
-  // }, [criteria]);
+  }, 1000);
 
   async function getPoses() {
     if (
@@ -190,40 +177,3 @@ export default function App() {
     </div>
   );
 }
-
-// if (time === maxTime) {
-//   // poses[0].keypoints[0].y refers to the y coordinate of the nose keypoint
-//   noseHeight = poses[0].keypoints[0].y;
-// }
-
-// if (
-//   status === "counted" &&
-//   poses[0].keypoints[0].y > noseHeight + 100
-// ) {
-//   status = "bottom";
-// }
-
-// if (status === "bottom" && poses[0].keypoints[0].y < noseHeight + 100) {
-//   status = "rising";
-// }
-
-// if (status === "rising" && poses[0].keypoints[0].y < noseHeight + 30) {
-//   status = "counted";
-//   reps++;
-//   const result = await evaluateExercise(angleArray, criteria);
-//   let isThisRepGood = 0;
-//   Object.keys(result).forEach((angle) => {
-//     if (result[angle] && summaryOfScores[angle]) {
-//       summaryOfScores[angle]++;
-//       isThisRepGood++;
-//     } else if (result[angle]) {
-//       summaryOfScores[angle] = 1;
-//       isThisRepGood++;
-//     } else if (!summaryOfScores[angle]) {
-//       summaryOfScores[angle] = 0;
-//     }
-//   });
-//   if (isThisRepGood > 1) goodReps++;
-//   summaryOfScores.reps = reps;
-//   results.push(result);
-// }
