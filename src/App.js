@@ -32,7 +32,7 @@ export default function App() {
     return () => {
       init();
     };
-  }, 10000);
+  }, 100);
 
   // useEffect(() => {
   //   async function getPoseInfoAndCriteria() {
@@ -66,9 +66,9 @@ export default function App() {
       if (detector) {
         let poses = await detector.estimatePoses(video);
 		// console.log('poses', poses)
-        // requestAnimationFrame(async () => {
-        //   await getPoses();
-        // });
+        requestAnimationFrame(async () => {
+          await getPoses();
+        });
         // const ctx = canvasRef.current.getContext("2d");
         
         drawCanvas(poses, videoWidth, videoHeight, canvasRef);
