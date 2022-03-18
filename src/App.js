@@ -7,7 +7,7 @@ import Webcam from "react-webcam";
 // import { useDispatch, useSelector } from "react-redux";
 
 export default function App() {
-//   const dispatch = useDispatch();
+  //   const dispatch = useDispatch();
   const [detector, setDetector] = useState();
   const [angleArray, setAngleArray] = useState([]);
 
@@ -34,6 +34,8 @@ export default function App() {
     };
   }, 1000);
 
+  let allPoses = {};
+
   async function getPoses() {
     if (
       typeof webcamRef.current !== "undefined" &&
@@ -49,24 +51,35 @@ export default function App() {
       webcamRef.current.video.width = videoWidth;
       webcamRef.current.video.height = videoHeight;
 
-	  // console.log('detector', detector)
+      // console.log('detector', detector)
       if (detector) {
+        const start = Date.now();
         let poses = await detector.estimatePoses(video);
-		// console.log('poses', poses)
-        requestAnimationFrame(async () => {
-          await getPoses();
-        });
+        requestAnimationFrame(getPoses);
         // const ctx = canvasRef.current.getContext("2d");
-        
         drawCanvas(poses, videoWidth, videoHeight, canvasRef);
-        
+        allPoses.poses = poses;
+        const end = Date.now();
       }
     }
   }
 
+  function drawCanvas(poses, videoWidth, videoHeight, canvas) {
+    canvas.current.width = videoWidth;
+    canvas.current.height = videoHeight;
+    //poses gives array of all 17 points as keys w/ objects (y, x, score, name)
+
+    // drawKeypoints(poses[0].keypoints);
+    // // poses[0].keypoints ----> this is an array containing 17 objects
+    // drawSkeleton(poses[0].keypoints);
+    drawSomeRandomPointsClusteredAtKeypoint(poses[0].keypoints);
+  }
+
   function drawKeypoint(keypoint) {
+    //keypoint argument is a singular point --> (y, x, score, name)
     const ctx = canvasRef.current.getContext("2d");
-   
+    //ctx = methods you get in 2D
+
     // If score is null, just show the keypoint.
     const confidence = keypoint.score != null ? keypoint.score : 1;
     const scoreThreshold = 0.3 || 0;
@@ -80,8 +93,11 @@ export default function App() {
   }
 
   function drawKeypoints(keypoints) {
+    //keypoints is an array of 17 objects of the keypoints
+
     const ctx = canvasRef.current.getContext("2d");
     const keypointInd = poseDetection.util.getKeypointIndexBySide("MoveNet");
+    // object with keys: left, middle, right ---> value is an array of the key points (body parts)
     ctx.fillStyle = "White";
     ctx.strokeStyle = "White";
     ctx.lineWidth = 2;
@@ -94,6 +110,7 @@ export default function App() {
     ctx.fillStyle = "Green";
     for (const i of keypointInd.left) {
       drawKeypoint(keypoints[i]);
+      //looping through all the left points & drawing a outline filled circle
     }
     //right points will be orange... note your actual right side (technically left side when looking at video)
     ctx.fillStyle = "Orange";
@@ -101,6 +118,47 @@ export default function App() {
       drawKeypoint(keypoints[i]);
     }
   }
+
+  // *********************** MICA ANIMATIONS ******************************
+  function drawSomeRandomPointsClusteredAtKeypoint(keypoints) {
+    const ctx = canvasRef.current.getContext("2d");
+
+    for (let j = 0; j < keypoints.length; j++) {
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        const generateRandomLocal = function (min, max) {
+          min = Math.ceil(min);
+          max = Math.floor(max);
+          return Math.floor(Math.random() * (max - min) + min);
+        };
+
+        const currKey = keypoints[j];
+
+        const randomX = generateRandomLocal(currKey.x - 50, currKey.x + 50);
+        const randomY = generateRandomLocal(currKey.y - 50, currKey.y + 50);
+        ctx.arc(randomX, randomY, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = "pink";
+        ctx.fill();
+      }
+    }
+  }
+
+  //   function theoreticallyCreateUpwardFloatingDotTrails(
+  // 	ctx,
+  // 	x,
+  // 	y,
+  // 	r,
+  // 	color,
+  // 	canvas
+  //   ) {
+  // 	requestAnimationFrame(theoreticallyCreateUpwardFloatingDotTrails);
+  // 	ctx.clearRect(0, 0, canvas.height, canvas.width); // might need some clarification on what to pass in
+  // 	ctx.beginPath();
+  // 	ctx.arc(x, y, r, 0, 2 * Math.PI);
+  // 	ctx.fillStyle = color;
+  // 	ctx.fill();
+  // 	x++
+  //   }
 
   function drawSkeleton(keypoints) {
     const ctx = canvasRef.current.getContext("2d");
@@ -138,13 +196,13 @@ export default function App() {
     });
   }
 
-  function drawCanvas(poses, videoWidth, videoHeight, canvas) {
-    canvas.current.width = videoWidth;
-    canvas.current.height = videoHeight;
+  //   function drawCanvas(poses, videoWidth, videoHeight, canvas) {
+  //     canvas.current.width = videoWidth;
+  //     canvas.current.height = videoHeight;
 
-    drawKeypoints(poses[0].keypoints);
-    drawSkeleton(poses[0].keypoints);
-  }
+  //     drawKeypoints(poses[0].keypoints);
+  //     drawSkeleton(poses[0].keypoints);
+  //   }
 
   getPoses();
 
