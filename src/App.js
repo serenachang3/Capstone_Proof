@@ -10,11 +10,14 @@ export default function App() {
   //   const dispatch = useDispatch();
   const [detector, setDetector] = useState();
   const [angleArray, setAngleArray] = useState([]);
-
+ 
   // const maxTime = 10
+  const [capturing, setCapturing] = useState(false);
+  const [recordedChunks, setRecordedChunks] = useState([]);
 
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
 
   async function init() {
     const detectorConfig = {
@@ -63,6 +66,51 @@ export default function App() {
       }
     }
   }
+// ******* MEDIA RECORDING CODE START 
+  const handleStartCaptureClick = React.useCallback(() => {
+    setCapturing(true);
+    mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
+      mimeType: "video/webm"
+    });
+    mediaRecorderRef.current.addEventListener(
+      "dataavailable",
+      handleDataAvailable
+    );
+    mediaRecorderRef.current.start();
+  }, [webcamRef, setCapturing, mediaRecorderRef]);
+
+  const handleDataAvailable = React.useCallback(
+    ({ data }) => {
+      if (data.size > 0) {
+        setRecordedChunks((prev) => prev.concat(data));
+      }
+    },
+    [setRecordedChunks]
+  );
+
+  const handleStopCaptureClick = React.useCallback(() => {
+    mediaRecorderRef.current.stop();
+    setCapturing(false);
+  }, [mediaRecorderRef, webcamRef, setCapturing]);
+
+  const handleDownload = React.useCallback(() => {
+    if (recordedChunks.length) {
+      const blob = new Blob(recordedChunks, {
+        type: "video/webm"
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      document.body.appendChild(a);
+      a.style = "display: none";
+      a.href = url;
+      a.download = "react-webcam-stream-capture.webm";
+      a.click();
+      window.URL.revokeObjectURL(url);
+      setRecordedChunks([]);
+    }
+  }, [recordedChunks]);
+// ******* MEDIA RECORDING CODE END  
+
 
   function drawCanvas(poses, videoWidth, videoHeight, canvas) {
     canvas.current.width = videoWidth;
@@ -211,15 +259,18 @@ export default function App() {
       <Webcam
         id="webcam"
         ref={webcamRef}
+        audio={false}
         style={{
           transform: "scaleX(-1)",
           filter: "FlipH",
           position: "fixed",
-          height: "100%",
-          width: "100%",
+          height: "75%",
+          width: "75%",
           objectFit: "cover",
-        }}
+        }}  
+      
       />
+
       <canvas
         id="canvas"
         ref={canvasRef}
@@ -227,11 +278,21 @@ export default function App() {
           transform: "scaleX(-1)",
           filter: "FlipH",
           position: "fixed",
-          height: "100%",
-          width: "100%",
+          height: "75%",
+          width: "75%",
           objectFit: "cover",
         }}
       />
+      
+      {capturing ? (
+        <button onClick={handleStopCaptureClick}>Stop Capture</button>
+      ) : (
+        <button onClick={handleStartCaptureClick}>Start Capture</button>
+      )}
+      {recordedChunks.length > 0 && (
+        <button onClick={handleDownload}>Download</button>
+      )}
+      
     </div>
   );
 }
